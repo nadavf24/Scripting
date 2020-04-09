@@ -16,7 +16,6 @@ config = configparser.ConfigParser()
 #filepath =
 
 options = Options()
-#chrome_options = webdriver.ChromeOptions()
 
 def wait_until_browser_loaded(interval, maxTime):
     start_time = datetime.now()
@@ -35,7 +34,9 @@ else:
     print('No Exisitng Config File')
     logging.info('No Exisitng Config File')
     driver_path = input('Path for chromedriver: ')
+    driver_path = driver_path.strip('\'"')
 	filepath = input('Path for input file: ')
+    filepath = filepath.strip('\'"')
     usr_dir = os.path.expanduser('~\\AppData\\Local\\Google\\Chrome\\User Data')
     config['PATH'] = {
         'CDRIVER_PATH': driver_path ,
@@ -60,6 +61,8 @@ urls = open(filepath)
 
 
 options.add_argument("user-data-dir=" + usr_dir)
+options.add_argument("--profile-directory=Default")
+options.add_argument("--log-level=3")
 #options.add_argument('--load-extension={}'.format(extension_path)) #//run as admin
 #options.add_experimental_option('useAutomationExtension', False)  #//posiable solution for users not in domain
 
@@ -71,22 +74,23 @@ browser.set_page_load_timeout(60)
 titleNumber = 1
 for url in urls:
         try:
-            time.sleep(3)
+            time.sleep(5)
             browser.get(("https://www." + url ))
-            #print(url)
-            time.sleep(1)
-
             title = browser.title
             if title == "Loading...":
                 wait_until_browser_loaded(5, 10)
             if title == "Loading...":
-                logging.info("Title Load" + " - " + str(titleNumber))
-                print ("Title Load" + " - " + str(titleNumber))
+                print (str(titleNumber) + " - " + "Title Load" + " - " + url.rstrip())
+                logging.info(str(titleNumber) + " - " + "Title Load" + " - " + url.rstrip())
+            elif title == "Check Point SandBlast":
+                category = browser.find_element_by_xpath('//*[@id="categoryNames"]')
+                print (str(titleNumber) + " - " +title + " - " + "Category: " + category + url.rstrip())
+                logging.info(str(titleNumber) + " - " +title + " - " + "Category: " + category + url.rstrip())
             else:
-                logging.info(title + " - "+ str(titleNumber))
-                print (title + " - "+ str(titleNumber))
-            titleNumber +=1
+                print (str(titleNumber) + " - " +title + " - "+ url.rstrip())
+                logging.info(str(titleNumber) + " - " +title + " - " + url.rstrip())
+                titleNumber +=1
         except TimeoutException as e:
-           logging.info("Timeout")
-           print("Timeout")
+           print(str(titleNumber) + " - " + "Timeout" + " - " + str(e))
+           logging.info(str(titleNumber) + " - " + "Timeout" + " - " + str(e))
 browser.quit()
